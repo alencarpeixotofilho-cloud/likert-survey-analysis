@@ -1,0 +1,15 @@
+item,dimension,text
+T1,Teaching,The instructor explains concepts clearly.
+T2,Teaching,The instructor uses examples that connect theory and practice.
+T3,Teaching,The instructor encourages questions and participation.
+T4,Teaching,The pace of classes is appropriate.
+A1,Assessment,Assessments are aligned with what was taught.
+A2,Assessment,Assessment criteria are made clear in advance.
+A3,Assessment,Feedback on assessments is timely and useful.
+I1,Infrastructure,Classrooms are adequate for the activities proposed.
+I2,Infrastructure,Laboratories and practice settings are well equipped.
+I3,Infrastructure,The library offers the resources I need.
+I4,Infrastructure,Internet access on campus is reliable.
+S1,Student support,I know where to seek academic support when I need it.
+S2,Student support,Administrative services answer my requests promptly.
+S3,Student support,The institution listens to student feedback.

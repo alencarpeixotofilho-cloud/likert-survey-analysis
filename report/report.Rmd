@@ -1,0 +1,85 @@
+---
+title: "Institutional Survey Report"
+subtitle: "Synthetic data · demonstration"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    self_contained: true
+params:
+  responses: "examples/data/responses.csv"
+  questionnaire: "questionnaires/questionnaire.csv"
+  min_n: 10
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 9)
+for (f in c("R/scores.R", "R/reliability.R", "R/suppression.R", "R/plots.R")) source(f)
+questionnaire <- read.csv(params$questionnaire, stringsAsFactors = FALSE)
+responses <- read.csv(params$responses, stringsAsFactors = FALSE)
+responses$cycle <- as.character(responses$cycle)
+long <- to_long(responses, questionnaire)
+dims <- dimension_scores(long)
+current <- max(responses$cycle)
+```
+
+## Overview
+
+* **Respondents:** `r format(nrow(responses), big.mark = ",")` across
+  `r length(unique(responses$cycle))` evaluation cycles and
+  `r length(unique(responses$program))` programs.
+* **Instrument:** `r nrow(questionnaire)` items in
+  `r length(unique(questionnaire$dimension))` dimensions, 5-point agreement scale.
+* **Anonymity rule:** results for groups with fewer than `r params$min_n`
+  respondents are suppressed.
+
+## Reliability
+
+```{r}
+knitr::kable(reliability_table(responses, questionnaire),
+             col.names = c("Dimension", "Items", "Complete cases", "Cronbach's alpha",
+                           "Lowest item-total r", "Weakest item"))
+```
+
+## Item results — cycle `r current`
+
+```{r, fig.height=7.5}
+plot_likert(dplyr::filter(long, cycle == current), paste("Responses by item -", current))
+```
+
+```{r}
+items <- item_summary(dplyr::filter(long, cycle == current))
+knitr::kable(items[, c("dimension", "item", "text", "n", "agree_pct", "disagree_pct", "index")],
+             digits = 1, col.names = c("Dimension", "Item", "Statement", "n", "% agree",
+                                       "% disagree", "Index (0-100)"))
+```
+
+## Dimensions by program
+
+```{r, fig.height=4.2}
+by_program <- dimension_summary(dplyr::filter(dims, cycle == current), program) |>
+  suppress_small_groups(min_n = params$min_n)
+plot_dimensions(by_program)
+```
+
+```{r}
+tab <- by_program
+tab$index <- ifelse(tab$suppressed, paste0("n < ", params$min_n), sprintf("%.1f", tab$index))
+knitr::kable(tab[, c("program", "dimension", "n", "index")],
+             col.names = c("Program", "Dimension", "n", "Index"))
+```
+
+## Change between cycles
+
+```{r}
+by_cycle <- dimension_summary(dims, cycle)
+wide <- tidyr::pivot_wider(by_cycle[, c("cycle", "dimension", "index")],
+                           names_from = cycle, values_from = index)
+cyc <- sort(unique(responses$cycle))
+if (length(cyc) >= 2) wide$change <- wide[[cyc[length(cyc)]]] - wide[[cyc[length(cyc) - 1]]]
+knitr::kable(wide, digits = 1)
+```
+
+---
+*Generated with* `likert-survey-analysis`. *All data in this report are synthetic.*
